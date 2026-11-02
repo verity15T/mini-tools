@@ -1,0 +1,2392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b0f17" />
+<title>小工具集</title>
+<style>
+  :root {
+    --bg: #0b0f17;
+    --panel: #121826;
+    --panel-2: #182033;
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #e7ecf5;
+    --muted: #8b97ad;
+    --accent: #6f9bff;
+    --accent-2: #a06bff;
+    --good: #3ddc97;
+    --warn: #ffb454;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  }
+  body {
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(111, 155, 255, 0.16), transparent 60%),
+      radial-gradient(700px 420px at 0% 0%, rgba(160, 107, 255, 0.12), transparent 55%),
+      var(--bg);
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  .app { max-width: 760px; margin: 0 auto; padding: 16px 14px 28px; }
+  header h1 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button {
+    flex: 0 0 auto;
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .tabs button.active {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+  main { margin-top: 14px; }
+  .view { display: none; }
+  .view.active { display: block; animation: fade 0.25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .hint { color: var(--muted); font-size: 12px; line-height: 1.7; }
+  .btn {
+    appearance: none;
+    border: 0;
+    border-radius: 12px;
+    padding: 11px 18px;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn.ghost {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+
+  #rippleStage {
+    position: relative;
+    width: 100%;
+    height: 58vh;
+    border-radius: 16px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 20%, #0e1a2e, #050810 75%);
+    border: 1px solid var(--line);
+  }
+  #rippleStage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  #rippleStage .tip {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  #universeStage {
+    position: relative;
+    width: 100%;
+    height: 62vh;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #02040a;
+    border: 1px solid var(--line);
+  }
+  #universeStage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  #universeStage .u-toggle {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(140, 170, 230, 0.35);
+    background: rgba(20, 28, 45, 0.68);
+    color: #cfe0ff;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: all 0.2s ease;
+  }
+  #universeStage .u-toggle.on {
+    background: rgba(90, 140, 230, 0.38);
+    border-color: rgba(150, 190, 255, 0.6);
+    color: #ffffff;
+  }
+  #universeStage .tip {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    font-size: 11px;
+    color: rgba(180, 200, 230, 0.45);
+    pointer-events: none;
+  }
+
+  #moonStage {
+    position: relative;
+    width: 100%;
+    height: 62vh;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #05060a;
+    border: 1px solid var(--line);
+  }
+  #moonStage canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+
+  /* 粒子 */
+  #stage {
+    position: relative;
+    width: 100%;
+    height: 58vh;
+    border-radius: 16px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, #16203a, #080b12 70%);
+    border: 1px solid var(--line);
+  }
+  #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  #stage .tip {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* 随机 */
+  .random-wrap textarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 12px;
+    outline: none;
+  }
+  .random-wrap textarea:focus { border-color: rgba(111, 155, 255, 0.5); }
+  .random-row { display: flex; gap: 10px; margin-top: 12px; }
+  .random-result {
+    margin-top: 16px;
+    min-height: 76px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    text-align: center;
+    padding: 12px;
+    transition: color 0.2s ease;
+  }
+  .random-result.rolling { color: var(--muted); }
+
+  /* 配色 */
+  .palette { display: grid; gap: 10px; margin-top: 14px; }
+  .swatch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .swatch:active { transform: scale(0.99); }
+  .swatch .chip {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    flex: 0 0 auto;
+  }
+  .swatch .meta { flex: 1; min-width: 0; }
+  .swatch .hex { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+  .swatch .name { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .swatch .lock {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 16px;
+    padding: 6px;
+    cursor: pointer;
+  }
+  .swatch .lock.on { color: var(--warn); }
+
+  /* 番茄钟 */
+  .pomodoro { display: grid; place-items: center; gap: 14px; padding: 10px 0 4px; }
+  .ring { position: relative; width: 230px; height: 230px; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .label {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 40px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+  }
+  .ring .label small { display: block; font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; font-weight: 400; }
+  .pomodoro .row { display: flex; gap: 10px; }
+
+  /* 壁纸 */
+  #wallpaperPreview {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    display: block;
+    background: #000;
+  }
+  .wallpaper-controls { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .seg { display: flex; gap: 6px; background: var(--panel-2); padding: 4px; border-radius: 999px; border: 1px solid var(--line); }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 12px; padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .seg button.active { background: rgba(111, 155, 255, 0.2); color: #fff; }
+  /* 空调遥控器 */
+  .ac-stage {
+    width: 100%;
+    height: 250px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 20%, #17202e, #080b12 75%);
+    border: 1px solid var(--line);
+  }
+  .ac-stage canvas { display: block; width: 100%; height: 100%; }
+
+  .ac-wrap { display: grid; place-items: center; gap: 14px; }
+  .ac-body {
+    width: min(100%, 320px);
+    border-radius: 34px;
+    padding: 20px 18px 16px;
+    background: linear-gradient(160deg, #2b323b 0%, #1a1f26 45%, #10141a 100%);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -2px 6px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: transform 0.2s ease;
+  }
+  .ac-screen {
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: linear-gradient(180deg, #0d2a1d, #08170f);
+    border: 1px solid rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.9), inset 0 0 26px rgba(60, 255, 180, 0.06);
+    color: #7ef2c2;
+    font-family: ui-monospace, Menlo, monospace;
+    transition: all 0.3s ease;
+  }
+  .ac-body.off .ac-screen {
+    background: #0c0f12;
+    color: #33404a;
+    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.9);
+  }
+  .ac-screen-top { display: flex; justify-content: space-between; font-size: 11px; opacity: 0.85; letter-spacing: 0.08em; }
+  .ac-screen-temp { font-size: 54px; line-height: 1.15; text-align: center; font-weight: 300; letter-spacing: 0.02em; }
+  .ac-screen-temp span { font-size: 16px; margin-left: 2px; }
+  .ac-body.off .ac-screen-temp { opacity: 0.5; }
+  .ac-keys { margin-top: 16px; display: grid; gap: 10px; }
+  .ac-key {
+    appearance: none; border: 0; cursor: pointer;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #3a434f, #232a33);
+    color: #cfe6ff;
+    font: inherit;
+    font-size: 16px;
+    padding: 14px 10px;
+    box-shadow: 0 3px 0 #0c1015, inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.2s ease, color 0.2s ease;
+  }
+  .ac-key:active { transform: translateY(3px); box-shadow: 0 0 0 #0c1015, inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+  .ac-key.power { background: linear-gradient(180deg, #2f4a3f, #1c2f27); color: #7ef2c2; }
+  .ac-row { display: flex; gap: 8px; }
+  .ac-row .ac-key { flex: 1; font-size: 12px; padding: 11px 4px; }
+  .ac-key.active {
+    color: #dff2ff;
+    background: linear-gradient(180deg, #33506e, #1d3049);
+    box-shadow: 0 3px 0 #0c1015, inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 16px rgba(120, 190, 255, 0.45);
+  }
+
+  /* 随机决定（高级版） */
+  .random-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; }
+  .switch input { accent-color: var(--accent); width: 16px; height: 16px; }
+  .switch input[type="number"] { width: 46px; background: #0e1420; border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 4px 6px; font: inherit; font-size: 12px; text-align: center; }
+  .option-list { display: grid; gap: 8px; margin-bottom: 12px; }
+  .option-row { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); transition: opacity 0.2s ease; }
+  .option-row.excluded { opacity: 0.38; }
+  .option-row .name { flex: 1; min-width: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .option-row .bar { flex: 0 0 64px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .option-row .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.25s ease; }
+  .option-row .pct { flex: 0 0 44px; text-align: right; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .option-row input { flex: 0 0 48px; width: 48px; background: #0e1420; border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 5px 4px; font: inherit; font-size: 12px; text-align: center; }
+  .option-row .del { flex: 0 0 auto; appearance: none; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; padding: 2px 4px; cursor: pointer; }
+  .add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .add-row input { flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 9px 11px; font: inherit; font-size: 13px; outline: none; }
+  .add-row input.w { flex: 0 0 54px; text-align: center; padding: 9px 4px; }
+  .add-row button { flex: 0 0 auto; padding: 9px 14px; border-radius: 10px; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); font: inherit; font-size: 13px; cursor: pointer; }
+  .prob-hint { margin-top: 8px; font-size: 11px; color: var(--muted); }
+  .history { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .history span { font-size: 11px; color: var(--muted); padding: 4px 9px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+    background: rgba(20, 26, 40, 0.96); color: #fff; padding: 10px 16px;
+    border-radius: 999px; font-size: 13px; border: 1px solid var(--line);
+    opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>小工具集</h1>
+    <nav class="tabs" id="tabs">
+      <button data-view="particles" class="active">粒子</button>
+      <button data-view="ripple">水波纹</button>
+      <button data-view="universe">宇宙</button>
+      <button data-view="moon">月亮</button>
+      <button data-view="random">随机决定</button>
+      <button data-view="colors">配色</button>
+      <button data-view="pomodoro">番茄钟</button>
+      <button data-view="wallpaper">壁纸</button>
+      <button data-view="ac">空调</button>
+      <button data-view="fox">狐狸动画</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="view active" id="view-particles">
+      <div id="stage"><canvas id="particleCanvas"></canvas><span class="tip">拖动吸引粒子</span></div>
+    </section>
+    <section class="view" id="view-ripple">
+      <div id="rippleStage">
+        <canvas id="rippleCanvas"></canvas>
+        <span class="tip">点击或拖动，水面会荡开波纹</span>
+      </div>
+    </section>
+
+    <section class="view" id="view-universe">
+      <div id="universeStage">
+        <canvas id="universeCanvas"></canvas>
+        <button id="universeLabels" class="u-toggle on" type="button">文字</button>
+        <span class="tip">拖动旋转 · 上下拖动改倾角</span>
+      </div>
+    </section>
+    <section class="view" id="view-moon">
+      <div id="moonStage">
+        <canvas id="moonCanvas"></canvas>
+      </div>
+      <p class="hint">满月 · 缓慢自转</p>
+    </section>
+    <section class="view" id="view-random">
+      <div class="card">
+        <div class="random-head">
+          <div class="seg" id="randomModes">
+            <button data-mode="single" class="active" type="button">单选</button>
+            <button data-mode="multi" type="button">多选</button>
+          </div>
+          <label class="switch"><input type="checkbox" id="noRepeat"> 不重复抽取</label>
+          <label class="switch" id="multiCountWrap" style="display:none">抽 <input type="number" id="multiCount" value="2" min="2" max="10"> 个</label>
+        </div>
+        <div class="option-list" id="optionList"></div>
+        <div class="add-row">
+          <input id="newOption" placeholder="添加一个选项" maxlength="40">
+          <input id="newWeight" class="w" type="number" value="1" min="1" max="99" title="权重">
+          <button id="btnAdd" type="button">添加</button>
+        </div>
+        <div class="random-row">
+          <button class="btn" id="btnRandom">开始抽取</button>
+          <button class="btn ghost" id="btnRestore">恢复示例</button>
+        </div>
+        <div class="random-result" id="randomResult">准备好了吗</div>
+        <div class="prob-hint" id="probHint"></div>
+        <div class="history" id="history"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-colors">
+      <div class="card">
+        <p class="hint">点色块复制色值，点锁图标固定某个颜色。</p>
+        <div class="palette" id="palette"></div>
+        <div class="random-row">
+          <button class="btn" id="btnPalette">换一组配色</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-pomodoro">
+      <div class="card pomodoro">
+        <div class="ring">
+          <svg width="230" height="230" viewBox="0 0 230 230">
+            <circle cx="115" cy="115" r="104" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
+            <circle id="ringProgress" cx="115" cy="115" r="104" fill="none" stroke="url(#ringGrad)"
+              stroke-width="10" stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="0" />
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#6f9bff" />
+                <stop offset="100%" stop-color="#a06bff" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="label"><div><span id="pomoTime">25:00</span><small id="pomoState">专注时间</small></div></div>
+        </div>
+        <div class="row">
+          <button class="btn" id="btnPomoStart">开始</button>
+          <button class="btn ghost" id="btnPomoReset">重置</button>
+        </div>
+        <p class="hint" id="pomoHint">专注 25 分钟，结束后休息 5 分钟。</p>
+      </div>
+    </section>
+
+    <section class="view" id="view-wallpaper">
+      <div class="card">
+        <canvas id="wallpaperPreview"></canvas>
+        <div class="wallpaper-controls">
+          <div class="seg" id="wallpaperStyles">
+            <button data-style="mesh" class="active">渐变</button>
+            <button data-style="blob">光斑</button>
+            <button data-style="grid">网格</button>
+            <button data-style="wave">波纹</button>
+          </div>
+        </div>
+        <div class="random-row">
+          <button class="btn" id="btnWallpaper">换一张</button>
+          <button class="btn ghost" id="btnDownload">下载图片</button>
+        </div>
+        <p class="hint">生成 1080 × 1920 的竖屏壁纸。</p>
+      </div>
+    </section>
+    <section class="view" id="view-ac">
+      <div class="ac-wrap">
+        <div class="ac-stage"><canvas id="acCanvas"></canvas></div>
+        <div class="ac-body off" id="acBody">
+          <div class="ac-screen">
+            <div class="ac-screen-top"><span id="acModeLabel">制冷</span><span id="acFanLabel">自动</span></div>
+            <div class="ac-screen-temp"><span id="acTemp">--</span><span>°C</span></div>
+          </div>
+          <div class="ac-keys">
+            <button class="ac-key power" id="acPower" type="button">⏻ 电源</button>
+            <div class="ac-row">
+              <button class="ac-key" id="acUp" type="button">＋</button>
+              <button class="ac-key" id="acDown" type="button">－</button>
+            </div>
+            <div class="ac-row" id="acModes">
+              <button data-mode="cool" class="ac-key active" type="button">制冷</button>
+              <button data-mode="dry" class="ac-key" type="button">除湿</button>
+              <button data-mode="fan" class="ac-key" type="button">送风</button>
+              <button data-mode="heat" class="ac-key" type="button">制热</button>
+              <button data-mode="sleep" class="ac-key" type="button">睡眠</button>
+            </div>
+            <div class="ac-row" id="acFans">
+              <button data-fan="auto" class="ac-key active" type="button">自动</button>
+              <button data-fan="1" class="ac-key" type="button">低</button>
+              <button data-fan="2" class="ac-key" type="button">中</button>
+              <button data-fan="3" class="ac-key" type="button">高</button>
+            </div>
+          </div>
+        </div>
+        <p class="hint">开机后有风声，风越大声音越明显。</p>
+      </div>
+    </section>
+
+    <section class="view" id="view-fox">
+      <div class="card" style="padding:0;overflow:hidden">
+        <iframe id="foxFrame" data-src="fox-apple/index.html" title="狐狸吃苹果"
+          style="width:100%;height:70vh;border:0;display:block;background:#cfe9f7"></iframe>
+      </div>
+      <p class="hint" style="margin-top:10px">拖动旋转视角，双指或滚轮缩放。</p>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+/* ---------- 通用 ---------- */
+const $ = (sel) => document.querySelector(sel);
+const toastEl = $('#toast');
+let toastTimer = 0;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600);
+}
+const rand = (min, max) => min + Math.random() * (max - min);
+const randInt = (min, max) => Math.floor(rand(min, max + 1));
+
+/* ---------- 标签切换 ---------- */
+const views = document.querySelectorAll('.view');
+const tabButtons = document.querySelectorAll('#tabs button');
+let activeView = 'particles';
+tabButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    activeView = btn.dataset.view;
+    tabButtons.forEach((b) => b.classList.toggle('active', b === btn));
+    views.forEach((v) => v.classList.toggle('active', v.id === `view-${activeView}`));
+    if (activeView === 'particles') particles.start();
+    else particles.stop();
+    if (activeView === 'ripple') ripple.start();
+    else ripple.stop();
+    if (activeView === 'universe') universe.start();
+    else universe.stop();
+    if (activeView === 'moon') moon.start();
+    else moon.stop();
+    if (activeView === 'ac') ac.start();
+    else ac.stop();
+    if (activeView === 'fox') {
+      const frame = document.getElementById('foxFrame');
+      if (frame && !frame.src) frame.src = frame.dataset.src;
+    }
+  });
+});
+
+/* ---------- 粒子动画 ---------- */
+const particles = (() => {
+  const canvas = $('#particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let width = 0;
+  let height = 0;
+  let dpr = 1;
+  let raf = 0;
+  let running = false;
+  let points = [];
+  const pointer = { x: -9999, y: -9999, active: false };
+  const COUNT = 90;
+  const LINK_DIST = 110;
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = rect.width;
+    height = rect.height;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!points.length) init();
+  }
+
+  function init() {
+    points = Array.from({ length: COUNT }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: rand(-0.35, 0.35),
+      vy: rand(-0.35, 0.35),
+      r: rand(1.2, 2.8),
+      hue: rand(210, 275),
+    }));
+  }
+
+  function step() {
+    ctx.clearRect(0, 0, width, height);
+    for (const p of points) {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > width) p.vx *= -1;
+      if (p.y < 0 || p.y > height) p.vy *= -1;
+      p.x = Math.max(0, Math.min(width, p.x));
+      p.y = Math.max(0, Math.min(height, p.y));
+
+      if (pointer.active) {
+        const dx = pointer.x - p.x;
+        const dy = pointer.y - p.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < 16000 && d2 > 1) {
+          const d = Math.sqrt(d2);
+          p.vx += (dx / d) * 0.035;
+          p.vy += (dy / d) * 0.035;
+        }
+      }
+      const speed = Math.hypot(p.vx, p.vy);
+      if (speed > 1.6) {
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+      }
+    }
+
+    for (let i = 0; i < points.length; i += 1) {
+      const a = points[i];
+      for (let j = i + 1; j < points.length; j += 1) {
+        const b = points[j];
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < LINK_DIST * LINK_DIST) {
+          const alpha = 1 - Math.sqrt(d2) / LINK_DIST;
+          ctx.strokeStyle = `rgba(111, 155, 255, ${alpha * 0.35})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    for (const p of points) {
+      ctx.beginPath();
+      ctx.fillStyle = `hsla(${p.hue}, 90%, 70%, 0.9)`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    raf = requestAnimationFrame(step);
+  }
+
+  function start() {
+    if (running || activeView !== 'particles') return;
+    running = true;
+    resize();
+    step();
+  }
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  const move = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const point = event.touches ? event.touches[0] : event;
+    if (!point) return;
+    pointer.x = point.clientX - rect.left;
+    pointer.y = point.clientY - rect.top;
+    pointer.active = true;
+  };
+  const leave = () => { pointer.active = false; };
+
+  canvas.addEventListener('pointermove', move);
+  canvas.addEventListener('pointerdown', move);
+  canvas.addEventListener('pointerleave', leave);
+  canvas.addEventListener('pointerup', leave);
+  window.addEventListener('resize', () => { if (running) resize(); });
+
+  return { start, stop };
+})();
+/* ---------- 水波纹 ---------- */
+const ripple = (() => {
+  const canvas = $('#rippleCanvas');
+  const ctx = canvas.getContext('2d');
+  let width = 0;
+  let height = 0;
+  let raf = 0;
+  let running = false;
+  const waves = [];
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = rect.width;
+    height = rect.height;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#050810';
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  function spawn(x, y, strength = 1) {
+    const hue = randInt(195, 285);
+    waves.push({ x, y, r: 2, speed: rand(2.2, 3.4) * strength, life: 1, hue, width: rand(1.5, 3) });
+    waves.push({ x, y, r: 2, speed: rand(1.4, 2.2) * strength, life: 0.7, hue: (hue + 25) % 360, width: rand(1, 2) });
+    if (waves.length > 90) waves.splice(0, waves.length - 90);
+  }
+
+  function step() {
+    ctx.fillStyle = 'rgba(5, 8, 16, 0.16)';
+    ctx.fillRect(0, 0, width, height);
+
+    for (let i = waves.length - 1; i >= 0; i -= 1) {
+      const p = waves[i];
+      p.r += p.speed;
+      p.life -= 0.008;
+      if (p.life <= 0) {
+        waves.splice(i, 1);
+        continue;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${p.hue}, 90%, 70%, ${Math.max(0, p.life) * 0.85})`;
+      ctx.lineWidth = p.width * (0.4 + p.life);
+      ctx.stroke();
+
+      if (p.r > 12) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 0.62, 0, Math.PI * 2);
+        ctx.strokeStyle = `hsla(${p.hue}, 90%, 78%, ${Math.max(0, p.life) * 0.35})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    raf = requestAnimationFrame(step);
+  }
+
+  function start() {
+    if (running || activeView !== 'ripple') return;
+    running = true;
+    resize();
+    step();
+  }
+
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  let drawing = false;
+  let lastX = 0;
+  let lastY = 0;
+
+  function pointOf(event) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  }
+
+  canvas.addEventListener('pointerdown', (event) => {
+    drawing = true;
+    const p = pointOf(event);
+    lastX = p.x;
+    lastY = p.y;
+    spawn(p.x, p.y, 1.2);
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(event.pointerId); } catch (e) { /* ignore */ }
+    }
+  });
+
+  canvas.addEventListener('pointermove', (event) => {
+    if (!drawing) return;
+    const p = pointOf(event);
+    const dist = Math.hypot(p.x - lastX, p.y - lastY);
+    if (dist < 48) return;
+    spawn(p.x, p.y, 0.9);
+    lastX = p.x;
+    lastY = p.y;
+  });
+
+  const endDraw = () => { drawing = false; };
+  canvas.addEventListener('pointerup', endDraw);
+  canvas.addEventListener('pointercancel', endDraw);
+
+  window.addEventListener('resize', () => { if (running) resize(); });
+
+  return { start, stop };
+})();
+
+/* ---------- 宇宙（银河系俯视图） ---------- */
+const universe = (() => {
+  const canvas = $('#universeCanvas');
+  const ctx = canvas.getContext('2d');
+  const TAU = Math.PI * 2;
+  let width = 0;
+  let height = 0;
+  let raf = 0;
+  let running = false;
+  let rot = 0;
+  let lastTs = 0;
+  let tilt = 1;
+  let targetTilt = 1;
+  let dragVel = 0;
+  let dragging = false;
+  let lastPointer = null;
+  let showLabels = true;
+
+  let bgStars = [];
+  let diskStars = [];
+  let nebulae = [];
+  let globulars = [];
+  let armNames = [];
+  let rings = [];
+
+  const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+
+  const ARMS = [
+    { name: '英仙臂', start: Math.PI * 0.02, hue: 210 },
+    { name: '人马-船底臂', start: Math.PI * 1.02, hue: 200 },
+    { name: '盾牌-半人马臂', start: Math.PI * 1.52, hue: 220 },
+    { name: '矩尺臂', start: Math.PI * 0.52, hue: 195 },
+  ];
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = rect.width;
+    height = rect.height;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    build();
+  }
+
+  const WARM = [255, 238, 200];
+  const COOL = [186, 206, 255];
+  const PINK = [255, 190, 210];
+  const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
+
+  function build() {
+    // 背景星
+    bgStars = Array.from({ length: 320 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      r: rand(0.3, 1.05),
+      a: rand(0.15, 0.6),
+      tw: Math.random() * TAU,
+    }));
+
+    // 盘内恒星
+    diskStars = [];
+    for (let i = 0; i < 6200; i += 1) {
+      const isDisk = Math.random() < 0.22;
+      const r = Math.pow(Math.random(), 0.5);
+      let theta;
+      let color;
+      let alpha;
+      let size;
+      if (isDisk) {
+        theta = Math.random() * TAU;
+        color = mix(WARM, COOL, Math.min(1, r * 1.1));
+        alpha = 0.08 + (1 - r) * 0.16;
+        size = rand(0.3, 1.1);
+      } else {
+        const armIndex = i % ARMS.length;
+        const spin = 3.1 * Math.PI * Math.pow(r, 0.92);
+        const widthF = (0.03 + r * 0.075) * (0.5 + Math.random());
+        theta = ARMS[armIndex].start + spin + gauss() * widthF;
+        color = mix(WARM, COOL, Math.min(1, Math.pow(r, 0.62)));
+        alpha = (1 - r * 0.22) * rand(0.45, 1);
+        size = rand(0.32, 1.25) * (1 - r * 0.25);
+      }
+      diskStars.push({
+        r: r * (1 + gauss() * 0.014),
+        theta,
+        size,
+        color,
+        alpha,
+      });
+    }
+
+    // 粉红星云（HII 区）
+    nebulae = [];
+    for (let i = 0; i < 220; i += 1) {
+      const armIndex = i % ARMS.length;
+      const r = 0.22 + Math.random() * 0.72;
+      const spin = 3.1 * Math.PI * Math.pow(r, 0.92);
+      nebulae.push({
+        r,
+        theta: ARMS[armIndex].start + spin + gauss() * 0.08,
+        size: rand(2, 7),
+        alpha: rand(0.08, 0.3),
+        hue: rand(325, 350),
+      });
+    }
+
+    // 球状星团（带编号标签）
+    globulars = [];
+    const used = new Set();
+    for (let i = 0; i < 46; i += 1) {
+      let num = 6000 + Math.floor(Math.random() * 1000);
+      while (used.has(num)) num += 1;
+      used.add(num);
+      const r = 0.3 + Math.random() * 0.85;
+      globulars.push({
+        r,
+        theta: Math.random() * TAU,
+        size: rand(1.2, 2.6),
+        dist: +(20 + Math.random() * 60).toFixed(1),
+        name: `NGC ${num}`,
+      });
+    }
+
+    // 旋臂名（沿臂方向排布）
+    armNames = ARMS.map((arm, index) => ({
+      text: arm.name,
+      startAngle: arm.start,
+      radius: 0.55 + index * 0.04,
+    }));
+    armNames.push({ text: '猎户支臂', startAngle: Math.PI * 0.42, radius: 0.42, minor: true });
+
+    // 距离圈
+    rings = [
+      { r: 0.38, label: '30 kly' },
+      { r: 0.62, label: '45 kly' },
+      { r: 0.86, label: '60 kly' },
+      { r: 1.05, label: '75 kly' },
+    ];
+  }
+
+  function drawLabels(cx, cy, R) {
+    ctx.save();
+    ctx.textBaseline = 'middle';
+
+    // 距离圈
+    ctx.strokeStyle = 'rgba(140, 170, 220, 0.14)';
+    ctx.setLineDash([3, 6]);
+    ctx.lineWidth = 1;
+    for (const ring of rings) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, ring.r * R, ring.r * R * tilt, 0, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    if (!showLabels) { ctx.restore(); return; }
+
+    ctx.font = '8px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillStyle = 'rgba(150, 175, 220, 0.55)';
+    for (const ring of rings) {
+      const a = -Math.PI * 0.25 + rot * 0.2;
+      const x = cx + Math.cos(a) * ring.r * R;
+      const y = cy + Math.sin(a) * ring.r * R * tilt;
+      ctx.fillText(ring.label, x, y);
+    }
+
+    // 旋臂名（沿弧线旋转）
+    ctx.font = '9px -apple-system, "PingFang SC", sans-serif';
+    for (const arm of armNames) {
+      const angle = arm.startAngle + rot + 1.7 + arm.radius * 2.2;
+      const x = cx + Math.cos(angle) * arm.radius * R;
+      const y = cy + Math.sin(angle) * arm.radius * R * tilt;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle + Math.PI / 2);
+      ctx.globalAlpha = arm.minor ? 0.55 : 0.8;
+      ctx.fillStyle = arm.minor ? 'rgba(180, 200, 240, 0.75)' : 'rgba(208, 222, 255, 0.9)';
+      ctx.textAlign = 'center';
+      ctx.fillText(arm.text, 0, 0);
+      ctx.restore();
+    }
+
+    // 球状星团
+    ctx.font = '7px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'left';
+    for (const g of globulars) {
+      const a = g.theta + rot;
+      const x = cx + Math.cos(a) * g.r * R;
+      const y = cy + Math.sin(a) * g.r * R * tilt;
+      ctx.globalAlpha = 0.75;
+      ctx.fillStyle = '#ffe8b0';
+      ctx.beginPath();
+      ctx.arc(x, y, g.size, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = 'rgba(220, 230, 255, 0.8)';
+      ctx.fillText(`${g.name} ${g.dist}kly`, x + 5, y - 3);
+    }
+
+    // 太阳
+    const sunR = 0.52;
+    const sunT = Math.PI * 0.06 + rot;
+    const sx = cx + Math.cos(sunT) * sunR * R;
+    const sy = cy + Math.sin(sunT) * sunR * R * tilt;
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff3c4';
+    ctx.beginPath();
+    ctx.arc(sx, sy, 2.6, 0, TAU);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 233, 170, 0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 6.5, 0, TAU);
+    ctx.stroke();
+    ctx.font = '9px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillStyle = 'rgba(255, 240, 190, 0.95)';
+    ctx.fillText('太阳', sx + 9, sy + 1);
+
+    // 银心
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 10px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillStyle = 'rgba(255, 246, 220, 0.9)';
+    ctx.fillText('银心', cx, cy - R * 0.2);
+
+    // 内圈范围
+    ctx.font = '8px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillStyle = 'rgba(170, 195, 235, 0.5)';
+    ctx.fillText('内圈范围', cx, cy - R * 1.06);
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function draw(ts) {
+    const dt = lastTs ? Math.min((ts - lastTs) / 1000, 0.05) : 0.016;
+    lastTs = ts;
+    rot += dt * 0.035 + dragVel;
+    dragVel *= 0.95;
+    tilt += (targetTilt - tilt) * 0.07;
+
+    const cx = width / 2;
+    const cy = height / 2;
+    const R = Math.min(width, height) * 0.44;
+
+    const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height) * 0.8);
+    bg.addColorStop(0, '#070b18');
+    bg.addColorStop(0.5, '#04060f');
+    bg.addColorStop(1, '#010206');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+
+    for (const s of bgStars) {
+      const tw = 0.6 + Math.sin(ts / 900 + s.tw) * 0.4;
+      ctx.globalAlpha = s.a * tw;
+      ctx.fillStyle = '#cfe0ff';
+      ctx.beginPath();
+      ctx.arc(s.x * width, s.y * height, s.r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // 盘面辉光（紫蓝）
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(1, tilt);
+    const disk = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 1.08);
+    disk.addColorStop(0, 'rgba(255, 240, 215, 0.55)');
+    disk.addColorStop(0.16, 'rgba(255, 214, 190, 0.3)');
+    disk.addColorStop(0.4, 'rgba(170, 170, 255, 0.12)');
+    disk.addColorStop(0.72, 'rgba(120, 140, 255, 0.05)');
+    disk.addColorStop(1, 'rgba(70, 90, 200, 0)');
+    ctx.fillStyle = disk;
+    ctx.beginPath();
+    ctx.arc(0, 0, R * 1.08, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+
+    // 粉红星云
+    for (const n of nebulae) {
+      const a = n.theta + rot;
+      const x = cx + Math.cos(a) * n.r * R;
+      const y = cy + Math.sin(a) * n.r * R * tilt;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, n.size * 2.6);
+      g.addColorStop(0, `hsla(${n.hue}, 90%, 78%, ${n.alpha})`);
+      g.addColorStop(0.5, `hsla(${n.hue}, 88%, 66%, ${n.alpha * 0.4})`);
+      g.addColorStop(1, 'hsla(0, 0%, 0%, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, n.size * 2.6, 0, TAU);
+      ctx.fill();
+    }
+
+    // 恒星
+    for (const p of diskStars) {
+      const a = p.theta + rot;
+      const x = cx + Math.cos(a) * p.r * R;
+      const y = cy + Math.sin(a) * p.r * R * tilt;
+      if (p.alpha < 0.03) continue;
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(x, y, p.size, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // 银心
+    const coreR = R * 0.16;
+    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+    core.addColorStop(0, 'rgba(255, 252, 240, 0.98)');
+    core.addColorStop(0.3, 'rgba(255, 232, 200, 0.6)');
+    core.addColorStop(0.65, 'rgba(255, 205, 170, 0.22)');
+    core.addColorStop(1, 'rgba(255, 190, 140, 0)');
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, coreR, coreR * tilt, 0, 0, TAU);
+    ctx.fill();
+
+    // 球状星团光点
+    for (const g of globulars) {
+      const a = g.theta + rot;
+      const x = cx + Math.cos(a) * g.r * R;
+      const y = cy + Math.sin(a) * g.r * R * tilt;
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = '#ffd98a';
+      ctx.beginPath();
+      ctx.arc(x, y, g.size * 2.2, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.arc(x, y, g.size * 0.8, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    drawLabels(cx, cy, R);
+
+    raf = requestAnimationFrame(draw);
+  }
+
+  function start() {
+    if (running || activeView !== 'universe') return;
+    running = true;
+    lastTs = 0;
+    resize();
+    draw(0);
+  }
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  const labelBtn = $('#universeLabels');
+  if (labelBtn) {
+    labelBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      showLabels = !showLabels;
+      labelBtn.classList.toggle('on', showLabels);
+    });
+  }
+
+  canvas.addEventListener('pointerdown', (event) => {
+    dragging = true;
+    lastPointer = { x: event.clientX, y: event.clientY };
+  });
+  canvas.addEventListener('pointermove', (event) => {
+    if (!dragging || !lastPointer) return;
+    const dx = event.clientX - lastPointer.x;
+    const dy = event.clientY - lastPointer.y;
+    dragVel += dx * 0.0005;
+    targetTilt = Math.max(0.15, Math.min(1, targetTilt + dy * 0.0018));
+    lastPointer = { x: event.clientX, y: event.clientY };
+  });
+  const endDrag = () => { dragging = false; lastPointer = null; };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  window.addEventListener('resize', () => { if (running) resize(); });
+
+  return { start, stop };
+})();
+
+/* ---------- 3D 月亮 ---------- */
+const moon = (() => {
+  const canvas = $('#moonCanvas');
+  const TAU = Math.PI * 2;
+  const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+  let THREE = null;
+  let renderer = null;
+  let scene = null;
+  let camera = null;
+  let moonMesh = null;
+  let group = null;
+  let bgSphere = null;
+  let raf = 0;
+  let userRotX = 0;
+  let userRotY = 0;
+  let velX = 0;
+  let velY = 0;
+  let camDist = 7.2;
+  let targetDist = 7.2;
+  let dragging = false;
+  let lastX = 0;
+  let lastY = 0;
+  const pointers = new Map();
+  let pinchStart = 0;
+  let running = false;
+  let ready = false;
+
+  function makeMoonTexture() {
+    const c = document.createElement('canvas');
+    c.width = 2048;
+    c.height = 1024;
+    const g = c.getContext('2d');
+    const W = c.width;
+    const H = c.height;
+
+    const base = g.createLinearGradient(0, 0, 0, H);
+    base.addColorStop(0, '#e6e5df');
+    base.addColorStop(0.45, '#dbdad3');
+    base.addColorStop(1, '#cbc9c0');
+    g.fillStyle = base;
+    g.fillRect(0, 0, W, H);
+
+    // 细颗粒噪声
+    for (let i = 0; i < 55000; i += 1) {
+      const v = 150 + Math.random() * 100;
+      g.fillStyle = `rgba(${v | 0}, ${v | 0}, ${(v - 4) | 0}, 0.05)`;
+      g.fillRect(Math.random() * W, Math.random() * H, 2, 2);
+    }
+
+    // 月海：不规则的深灰蓝色斑块（多点重叠）
+    const mariaSeeds = [
+      { x: 0.3, y: 0.45, r: 0.1 }, { x: 0.42, y: 0.4, r: 0.07 },
+      { x: 0.54, y: 0.45, r: 0.08 }, { x: 0.66, y: 0.42, r: 0.06 },
+      { x: 0.38, y: 0.56, r: 0.06 }, { x: 0.5, y: 0.6, r: 0.05 },
+      { x: 0.72, y: 0.52, r: 0.05 }, { x: 0.6, y: 0.68, r: 0.04 },
+      { x: 0.24, y: 0.52, r: 0.045 }, { x: 0.82, y: 0.58, r: 0.035 },
+    ];
+    for (const seed of mariaSeeds) {
+      const blobs = 5 + Math.floor(Math.random() * 4);
+      for (let b = 0; b < blobs; b += 1) {
+        const cx = (seed.x + gauss() * seed.r * 0.9) * W;
+        const cy = (seed.y + gauss() * seed.r * 0.7) * H;
+        const rr = (seed.r * (0.35 + Math.random() * 0.6)) * W;
+        const grad = g.createRadialGradient(cx, cy, 0, cx, cy, rr);
+        const a = 0.1 + Math.random() * 0.16;
+        grad.addColorStop(0, `rgba(98, 99, 106, ${a * 1.5})`);
+        grad.addColorStop(0.55, `rgba(116, 116, 122, ${a})`);
+        grad.addColorStop(1, 'rgba(110, 118, 132, 0)');
+        g.fillStyle = grad;
+        g.beginPath();
+        g.ellipse(cx, cy, rr, rr * (0.8 + Math.random() * 0.5), Math.random() * TAU, 0, TAU);
+        g.fill();
+      }
+    }
+
+    // 橙棕色斑块    // 橙棕色斑块
+    for (let i = 0; i < 18; i += 1) {
+      const cx = Math.random() * W;
+      const cy = Math.random() * H;
+      const r = 40 + Math.random() * 130;
+      const grad = g.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, `rgba(196, 150, 108, ${0.1 + Math.random() * 0.14})`);
+      grad.addColorStop(1, 'rgba(196, 150, 108, 0)');
+      g.fillStyle = grad;
+      g.beginPath();
+      g.arc(cx, cy, r, 0, TAU);
+      g.fill();
+    }
+
+    // 环形山
+    for (let i = 0; i < 520; i += 1) {
+      const cx = Math.random() * W;
+      const cy = Math.random() * H;
+      const r = 0.8 + Math.pow(Math.random(), 2.6) * 20;
+      g.fillStyle = 'rgba(120, 118, 112, 0.26)';
+      g.beginPath();
+      g.arc(cx, cy, r, 0, TAU);
+      g.fill();
+      g.lineWidth = Math.max(0.8, r * 0.14);
+      g.strokeStyle = 'rgba(252, 252, 248, 0.4)';
+      g.beginPath();
+      g.arc(cx, cy, r, Math.PI * 1.02, Math.PI * 1.98);
+      g.stroke();
+      g.strokeStyle = 'rgba(78, 76, 72, 0.3)';
+      g.beginPath();
+      g.arc(cx, cy, r, Math.PI * 0.02, Math.PI * 0.98);
+      g.stroke();
+      if (r > 5) {
+        g.fillStyle = 'rgba(255, 255, 250, 0.12)';
+        g.beginPath();
+        g.arc(cx - r * 0.25, cy - r * 0.25, r * 0.3, 0, TAU);
+        g.fill();
+      }
+    }
+
+    // 放射状亮纹（第谷坑一类的辐射纹）
+    const rays = [
+      { x: 0.62, y: 0.55, len: 0.24 },
+      { x: 0.48, y: 0.34, len: 0.18 },
+      { x: 0.75, y: 0.68, len: 0.15 },
+    ];
+    for (const ray of rays) {
+      const cx = ray.x * W;
+      const cy = ray.y * H;
+      for (let i = 0; i < 26; i += 1) {
+        const a = Math.random() * TAU;
+        const len = ray.len * W * (0.4 + Math.random() * 0.6);
+        const grad = g.createLinearGradient(cx, cy, cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+        grad.addColorStop(0, 'rgba(255, 255, 250, 0.28)');
+        grad.addColorStop(1, 'rgba(255, 255, 250, 0)');
+        g.strokeStyle = grad;
+        g.lineWidth = 1 + Math.random() * 2;
+        g.beginPath();
+        g.moveTo(cx, cy);
+        g.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+        g.stroke();
+      }
+    }
+
+    // 轻微暗角（两极）
+    const vign = g.createLinearGradient(0, 0, 0, H);
+    vign.addColorStop(0, 'rgba(120, 122, 128, 0.28)');
+    vign.addColorStop(0.2, 'rgba(120, 122, 128, 0)');
+    vign.addColorStop(0.8, 'rgba(120, 122, 128, 0)');
+    vign.addColorStop(1, 'rgba(120, 122, 128, 0.28)');
+    g.fillStyle = vign;
+    g.fillRect(0, 0, W, H);
+
+    return c;
+  }
+
+  function makeGlowTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(256, 256, 120, 256, 256, 256);
+    grad.addColorStop(0, 'rgba(255, 244, 220, 0.55)');
+    grad.addColorStop(0.35, 'rgba(255, 238, 205, 0.22)');
+    grad.addColorStop(0.7, 'rgba(255, 232, 190, 0.06)');
+    grad.addColorStop(1, 'rgba(255, 230, 180, 0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 512, 512);
+    return c;
+  }
+
+  function resize() {
+    if (!renderer) return;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    renderer.setSize(rect.width, rect.height, false);
+    camera.aspect = rect.width / rect.height;
+    camera.updateProjectionMatrix();
+  }
+
+  async function init() {
+    THREE = await import('./fox-apple/vendor/three.module.js');
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color('#02030a');
+    try {
+      const bgTex = await new THREE.TextureLoader().loadAsync('./stars_bg.jpg');
+      bgTex.colorSpace = THREE.SRGBColorSpace;
+      bgSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(80, 48, 32),
+        new THREE.MeshBasicMaterial({ map: bgTex, side: THREE.BackSide, depthWrite: false })
+      );
+      scene.add(bgSphere);
+    } catch (e) { /* 保持黑底 */ }
+
+    camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+    camera.position.set(0, 0, 7.2);
+
+    let tex;
+    try {
+      tex = await new THREE.TextureLoader().loadAsync('./moon_tex.jpg');
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 8;
+    } catch (e) {
+      tex = new THREE.CanvasTexture(makeMoonTexture());
+      tex.colorSpace = THREE.SRGBColorSpace;
+    }
+
+    const geo = new THREE.SphereGeometry(1.35, 128, 128);
+    const mat = new THREE.MeshStandardMaterial({
+      map: tex,
+      roughness: 0.95,
+      metalness: 0.02,
+    });
+    moonMesh = new THREE.Mesh(geo, mat);
+    group = new THREE.Group();
+    group.add(moonMesh);
+    scene.add(group);
+
+    const sun = new THREE.DirectionalLight(0xfffaf0, 1.5);
+    sun.position.set(1.2, 0.5, 3.4);
+    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0x505a70, 0.55));
+
+    const glowTex = new THREE.CanvasTexture(makeGlowTexture());
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    glow.scale.set(8.4, 8.4, 1);
+    glow.position.z = -2.2;
+    scene.add(glow);
+
+    resize();
+    ready = true;
+  }
+
+  function animate() {
+    if (!running) return;
+
+    if (moonMesh) moonMesh.rotation.y += 0.0009;
+
+    velX *= 0.94;
+    velY *= 0.94;
+    userRotY += velY;
+    userRotX += velX;
+    userRotX = Math.max(-1.25, Math.min(1.25, userRotX));
+
+    if (group) {
+      group.rotation.y = userRotY;
+      group.rotation.x = userRotX;
+    }
+
+    if (bgSphere) {
+      bgSphere.rotation.y = userRotY * 0.55;
+      bgSphere.rotation.x = userRotX * 0.35;
+    }
+
+    camDist += (targetDist - camDist) * 0.1;
+    camera.position.z = camDist;
+
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(animate);
+  }
+
+  canvas.addEventListener('pointerdown', (event) => {
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    try { canvas.setPointerCapture(event.pointerId); } catch (e) { /* ignore */ }
+    if (pointers.size === 1) {
+      dragging = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      canvas.style.cursor = 'grabbing';
+    } else if (pointers.size === 2) {
+      const pts = [...pointers.values()];
+      pinchStart = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    }
+  });
+
+  canvas.addEventListener('pointermove', (event) => {
+    if (!pointers.has(event.pointerId)) return;
+    const prev = pointers.get(event.pointerId);
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointers.size === 1 && dragging) {
+      const dx = event.clientX - prev.x;
+      const dy = event.clientY - prev.y;
+      velY = dx * 0.006;
+      velX = dy * 0.006;
+      userRotY += velY;
+      userRotX += velX;
+      userRotX = Math.max(-1.25, Math.min(1.25, userRotX));
+    } else if (pointers.size === 2) {
+      const pts = [...pointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if (pinchStart > 0 && dist > 0) {
+        targetDist *= pinchStart / dist;
+        targetDist = Math.max(3.4, Math.min(16, targetDist));
+      }
+      pinchStart = dist;
+    }
+  });
+
+  const releasePointer = (event) => {
+    pointers.delete(event.pointerId);
+    if (pointers.size === 0) {
+      dragging = false;
+      pinchStart = 0;
+      canvas.style.cursor = 'grab';
+    } else if (pointers.size === 1) {
+      const p = [...pointers.values()][0];
+      lastX = p.x;
+      lastY = p.y;
+      pinchStart = 0;
+    }
+  };
+  canvas.addEventListener('pointerup', releasePointer);
+  canvas.addEventListener('pointercancel', releasePointer);
+
+  canvas.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    targetDist *= event.deltaY > 0 ? 1.08 : 0.92;
+    targetDist = Math.max(3.4, Math.min(16, targetDist));
+  }, { passive: false });
+
+  function start() {
+    if (!ready) {
+      init().then(() => {
+        if (activeView === 'moon') { running = true; animate(); }
+      }).catch((err) => console.error('moon init failed', err));
+      return;
+    }
+    if (running) return;
+    running = true;
+    animate();
+  }
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  window.addEventListener('resize', () => { if (running) resize(); });
+
+  return { start, stop };
+})();
+
+/* ---------- 随机决定（高级版） ---------- */
+(() => {
+  const STORAGE_KEY = 'mini-tools-random-options';
+  const DEFAULT_OPTIONS = [
+    { name: '吃火锅', weight: 3 },
+    { name: '吃烧烤', weight: 2 },
+    { name: '吃面条', weight: 2 },
+    { name: '点外卖', weight: 1 },
+    { name: '自己做', weight: 1 },
+  ];
+  const listEl = $('#optionList');
+  const newNameEl = $('#newOption');
+  const newWeightEl = $('#newWeight');
+  const resultEl = $('#randomResult');
+  const hintEl = $('#probHint');
+  const historyEl = $('#history');
+  const noRepeatEl = $('#noRepeat');
+  const modesEl = $('#randomModes');
+  const multiCountEl = $('#multiCount');
+  const multiCountWrap = $('#multiCountWrap');
+
+  let options = load();
+  const excluded = new Set();
+  let history = [];
+  let mode = 'single';
+  let rolling = false;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length) return arr;
+      }
+    } catch (e) { /* ignore */ }
+    return DEFAULT_OPTIONS.map((o) => ({ ...o }));
+  }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(options)); } catch (e) { /* ignore */ }
+  }
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function pool() {
+    return noRepeatEl.checked ? options.filter((o) => !excluded.has(o.name)) : options.slice();
+  }
+  function weightedPick(items) {
+    const total = items.reduce((sum, o) => sum + Number(o.weight || 0), 0);
+    let r = Math.random() * total;
+    for (const item of items) {
+      r -= Number(item.weight || 0);
+      if (r <= 0) return item;
+    }
+    return items[items.length - 1];
+  }
+
+  function render() {
+    listEl.innerHTML = '';
+    const total = options.reduce((sum, o) => sum + Number(o.weight || 0), 0) || 1;
+    options.forEach((opt, index) => {
+      const row = document.createElement('div');
+      row.className = 'option-row' + (excluded.has(opt.name) ? ' excluded' : '');
+      const pct = ((Number(opt.weight) / total) * 100).toFixed(1);
+      row.innerHTML = [
+        `<span class="name">${escapeHtml(opt.name)}</span>`,
+        `<span class="bar"><i style="width:${pct}%"></i></span>`,
+        `<span class="pct">${pct}%</span>`,
+        `<input type="number" min="1" max="99" value="${opt.weight}" aria-label="权重">`,
+        '<button class="del" type="button" title="删除">×</button>',
+      ].join('');
+      row.querySelector('input').addEventListener('change', (event) => {
+        const value = Math.max(1, Math.min(99, Number(event.target.value) || 1));
+        options[index].weight = value;
+        save();
+        render();
+      });
+      row.querySelector('.del').addEventListener('click', () => {
+        options.splice(index, 1);
+        excluded.delete(opt.name);
+        save();
+        render();
+      });
+      listEl.appendChild(row);
+    });
+    hintEl.textContent = options.length
+      ? `共 ${options.length} 个选项` + (noRepeatEl.checked ? `，还可抽 ${pool().length} 个` : '')
+      : '还没有选项';
+    historyEl.innerHTML = history.slice(0, 6).map((h) => `<span>${escapeHtml(h)}</span>`).join('');
+  }
+
+  function addOption() {
+    const name = newNameEl.value.trim();
+    if (!name) { toast('先输入选项名'); return; }
+    if (options.some((o) => o.name === name)) { toast('已经有这个选项了'); return; }
+    const weight = Math.max(1, Math.min(99, Number(newWeightEl.value) || 1));
+    options.push({ name, weight });
+    newNameEl.value = '';
+    newWeightEl.value = 1;
+    save();
+    render();
+  }
+
+  function pick() {
+    const items = pool();
+    if (!items.length) {
+      if (noRepeatEl.checked && options.length) { toast('都抽完了，换个模式或点恢复示例'); return; }
+      toast('先添加几个选项');
+      return;
+    }
+    if (rolling) return;
+    const count = mode === 'multi'
+      ? Math.min(Math.max(2, Number(multiCountEl.value) || 2), items.length)
+      : 1;
+    rolling = true;
+    resultEl.classList.add('rolling');
+
+    let ticks = 0;
+    const totalTicks = 20;
+    const tick = () => {
+      resultEl.textContent = items[randInt(0, items.length - 1)].name;
+      ticks += 1;
+      if (ticks < totalTicks) {
+        setTimeout(tick, 40 + ticks * 9);
+        return;
+      }
+      const picked = [];
+      const rest = items.slice();
+      for (let i = 0; i < count && rest.length; i += 1) {
+        const item = weightedPick(rest);
+        picked.push(item);
+        rest.splice(rest.indexOf(item), 1);
+      }
+      resultEl.textContent = picked.map((p) => p.name).join(' · ');
+      resultEl.classList.remove('rolling');
+      rolling = false;
+      if (noRepeatEl.checked) picked.forEach((p) => excluded.add(p.name));
+      picked.forEach((p) => history.unshift(p.name));
+      history = history.slice(0, 8);
+      render();
+    };
+    tick();
+  }
+
+  $('#btnRandom').addEventListener('click', pick);
+  $('#btnAdd').addEventListener('click', addOption);
+  newNameEl.addEventListener('keydown', (event) => { if (event.key === 'Enter') addOption(); });
+  $('#btnRestore').addEventListener('click', () => {
+    options = DEFAULT_OPTIONS.map((o) => ({ ...o }));
+    excluded.clear();
+    history = [];
+    save();
+    render();
+    resultEl.textContent = '准备好了吗';
+  });
+  noRepeatEl.addEventListener('change', () => { excluded.clear(); render(); });
+  modesEl.addEventListener('click', (event) => {
+    const btn = event.target.closest('button');
+    if (!btn) return;
+    mode = btn.dataset.mode;
+    modesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+    multiCountWrap.style.display = mode === 'multi' ? 'inline-flex' : 'none';
+  });
+
+  render();
+})();
+
+/* ---------- 配色 ---------- */
+(() => {
+  const paletteEl = $('#palette');
+  const btn = $('#btnPalette');
+  const NAMES = ['主色', '辅色', '点缀', '深色', '浅色'];
+  let colors = [];
+  let locks = [false, false, false, false, false];
+
+  function hslToHex(h, s, l) {
+    s /= 100;
+    l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => {
+      const color = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }
+
+  function build() {
+    const baseHue = randInt(0, 359);
+    const scheme = [
+      { h: baseHue, s: randInt(62, 82), l: randInt(52, 62) },
+      { h: (baseHue + randInt(28, 62)) % 360, s: randInt(55, 75), l: randInt(48, 58) },
+      { h: (baseHue + randInt(150, 210)) % 360, s: randInt(60, 85), l: randInt(55, 66) },
+      { h: baseHue, s: randInt(25, 40), l: randInt(14, 20) },
+      { h: baseHue, s: randInt(18, 30), l: randInt(88, 94) },
+    ];
+    colors = scheme.map((c, i) => {
+      if (locks[i] && colors[i]) return colors[i];
+      return hslToHex(c.h, c.s, c.l);
+    });
+  }
+
+  function render() {
+    paletteEl.innerHTML = '';
+    colors.forEach((hex, index) => {
+      const row = document.createElement('div');
+      row.className = 'swatch';
+      row.innerHTML = `
+        <div class="chip" style="background:${hex}"></div>
+        <div class="meta">
+          <div class="hex">${hex.toUpperCase()}</div>
+          <div class="name">${NAMES[index]}</div>
+        </div>
+        <button class="lock ${locks[index] ? 'on' : ''}" type="button" title="锁定">${locks[index] ? '🔒' : '🔓'}</button>
+      `;
+      row.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('lock')) {
+          locks[index] = !locks[index];
+          render();
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(hex.toUpperCase());
+          toast(`已复制 ${hex.toUpperCase()}`);
+        } catch (e) {
+          toast('复制失败，长按色值手动复制');
+        }
+      });
+      paletteEl.appendChild(row);
+    });
+  }
+
+  btn.addEventListener('click', () => {
+    build();
+    render();
+  });
+
+  build();
+  render();
+})();
+
+/* ---------- 番茄钟 ---------- */
+(() => {
+  const timeEl = $('#pomoTime');
+  const stateEl = $('#pomoState');
+  const ring = $('#ringProgress');
+  const startBtn = $('#btnPomoStart');
+  const resetBtn = $('#btnPomoReset');
+  const hintEl = $('#pomoHint');
+  const CIRC = 2 * Math.PI * 104;
+  const FOCUS = 25 * 60;
+  const BREAK = 5 * 60;
+  let mode = 'focus';
+  let remaining = FOCUS;
+  let running = false;
+  let timer = 0;
+
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(2));
+
+  function total() {
+    return mode === 'focus' ? FOCUS : BREAK;
+  }
+
+  function render() {
+    const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const ss = String(remaining % 60).padStart(2, '0');
+    timeEl.textContent = `${mm}:${ss}`;
+    stateEl.textContent = mode === 'focus' ? '专注时间' : '休息时间';
+    const ratio = remaining / total();
+    ring.setAttribute('stroke-dashoffset', (CIRC * (1 - ratio)).toFixed(2));
+  }
+
+  function beep() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.value = 0.15;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    } catch (e) { /* ignore */ }
+  }
+
+  function tick() {
+    remaining -= 1;
+    if (remaining <= 0) {
+      beep();
+      if (mode === 'focus') {
+        mode = 'break';
+        remaining = BREAK;
+        hintEl.textContent = '休息 5 分钟，起来走走。';
+      } else {
+        mode = 'focus';
+        remaining = FOCUS;
+        hintEl.textContent = '专注 25 分钟，结束后休息 5 分钟。';
+      }
+      running = false;
+      clearInterval(timer);
+      startBtn.textContent = '开始';
+    }
+    render();
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (running) {
+      running = false;
+      clearInterval(timer);
+      startBtn.textContent = '继续';
+      return;
+    }
+    running = true;
+    startBtn.textContent = '暂停';
+    timer = setInterval(tick, 1000);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    running = false;
+    clearInterval(timer);
+    mode = 'focus';
+    remaining = FOCUS;
+    startBtn.textContent = '开始';
+    hintEl.textContent = '专注 25 分钟，结束后休息 5 分钟。';
+    render();
+  });
+
+  render();
+})();
+
+/* ---------- 空调遥控器 + 3D 模型 + 风声 ---------- */
+const ac = (() => {
+  const body = $('#acBody');
+  const tempEl = $('#acTemp');
+  const modeLabel = $('#acModeLabel');
+  const fanLabel = $('#acFanLabel');
+  const modesEl = $('#acModes');
+  const fansEl = $('#acFans');
+  const canvas = $('#acCanvas');
+
+  const MODE_NAMES = { cool: '制冷', dry: '除湿', fan: '送风', heat: '制热', sleep: '睡眠' };
+  const FAN_NAMES = { auto: '自动', '1': '低', '2': '中', '3': '高' };
+  const MODE_COLORS = { cool: '#6fd3ff', dry: '#8ce0c0', fan: '#aab8c8', heat: '#ff9a6b', sleep: '#7c8cff' };
+  const FAN_LEVELS = { auto: 0.5, '1': 0.35, '2': 0.6, '3': 1 };
+  const state = { on: false, temp: 26, mode: 'cool', fan: 'auto' };
+
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      audioCtx = new Ctx();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function tone(freq, dur, delay = 0, type = 'square', vol = 0.05) {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    try {
+      const start = ctx.currentTime + delay;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(vol, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + dur + 0.02);
+    } catch (e) { /* ignore */ }
+  }
+  const tap = () => tone(1400, 0.06);
+  const powerOnSound = () => { tone(880, 0.1, 0, 'sine', 0.07); tone(1320, 0.12, 0.11, 'sine', 0.07); };
+  const powerOffSound = () => { tone(1000, 0.1, 0, 'sine', 0.07); tone(660, 0.14, 0.11, 'sine', 0.06); };
+
+  let windSource = null;
+  let windGain = null;
+  let windFilter = null;
+  function startWind() {
+    const ctx = ensureAudio();
+    if (!ctx || windSource) return;
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+    windSource = ctx.createBufferSource();
+    windSource.buffer = buffer;
+    windSource.loop = true;
+    windFilter = ctx.createBiquadFilter();
+    windFilter.type = 'lowpass';
+    windFilter.frequency.value = 700;
+    windGain = ctx.createGain();
+    windGain.gain.value = 0;
+    windSource.connect(windFilter);
+    windFilter.connect(windGain);
+    windGain.connect(ctx.destination);
+    windSource.start();
+  }
+  function setWind(level) {
+    if (!windGain || !audioCtx) return;
+    const target = Math.max(0, Math.min(1, level)) * 0.12;
+    const now = audioCtx.currentTime;
+    windGain.gain.cancelScheduledValues(now);
+    windGain.gain.setValueAtTime(windGain.gain.value, now);
+    windGain.gain.linearRampToValueAtTime(target, now + 0.3);
+    if (windFilter) {
+      windFilter.frequency.cancelScheduledValues(now);
+      windFilter.frequency.setValueAtTime(windFilter.frequency.value, now);
+      windFilter.frequency.linearRampToValueAtTime(500 + level * 900, now + 0.3);
+    }
+    if (target === 0 && windSource) {
+      windSource.stop(now + 0.35);
+      windSource = null;
+      windGain = null;
+      windFilter = null;
+    }
+  }
+  function updateWind() {
+    if (!state.on) { setWind(0); return; }
+    startWind();
+    const base = FAN_LEVELS[state.fan] || 0.5;
+    const modeFactor = state.mode === 'fan' ? 1.15 : state.mode === 'sleep' ? 0.6 : 1;
+    setWind(base * modeFactor);
+  }
+
+  let THREE = null;
+  let scene = null;
+  let camera = null;
+  let renderer = null;
+  let blades = [];
+  let screenMesh = null;
+  let glowMesh = null;
+  let raf = 0;
+  let running = false;
+  let ready = false;
+
+  let windCount = 0;
+  let windPositions = null;
+  let windData = [];
+  let windPoints = null;
+  let windAttr = null;
+  let windMat = null;
+
+  async function init3D() {
+    if (ready) return;
+    THREE = await import('./fox-apple/vendor/three.module.js');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color('#0b0f17');
+
+    camera = new THREE.PerspectiveCamera(36, 1, 0.1, 50);
+    camera.position.set(0.55, 1.78, 2.95);
+    camera.lookAt(0, 1.62, 0);
+
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+
+    scene.add(new THREE.HemisphereLight('#dcecff', '#1a2230', 2.0));
+    const key = new THREE.DirectionalLight('#ffffff', 2.6);
+    key.position.set(2.2, 3.4, 3.2);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.left = -3;
+    key.shadow.camera.right = 3;
+    key.shadow.camera.top = 3;
+    key.shadow.camera.bottom = -1;
+    scene.add(key);
+    const fill = new THREE.DirectionalLight('#7fb6ff', 1.0);
+    fill.position.set(-3, 2, 1.5);
+    scene.add(fill);
+
+    const shellMat = new THREE.MeshStandardMaterial({ color: '#eef2f7', roughness: 0.5, metalness: 0.06 });
+    const panelMat = new THREE.MeshStandardMaterial({ color: '#f8fbfe', roughness: 0.4 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: '#222a36', roughness: 0.78 });
+
+    // 横向机身（壁挂）
+    const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.66, 0.46), shellMat);
+    bodyMesh.position.y = 1.72;
+    bodyMesh.castShadow = true;
+    bodyMesh.receiveShadow = true;
+    scene.add(bodyMesh);
+
+    // 前面板
+    const front = new THREE.Mesh(new THREE.BoxGeometry(2.06, 0.56, 0.05), panelMat);
+    front.position.set(0, 1.72, 0.24);
+    front.castShadow = true;
+    scene.add(front);
+
+    // 底部出风口
+    const ventFrame = new THREE.Mesh(new THREE.BoxGeometry(1.86, 0.1, 0.05), darkMat);
+    ventFrame.position.set(0, 1.46, 0.26);
+    scene.add(ventFrame);
+
+    // 出风叶片（横向长条）
+    for (let i = 0; i < 3; i += 1) {
+      const blade = new THREE.Mesh(
+        new THREE.BoxGeometry(1.8, 0.035, 0.06),
+        new THREE.MeshStandardMaterial({ color: '#c8d3e2', roughness: 0.5 })
+      );
+      blade.position.set(0, 1.49 - i * 0.028, 0.28);
+      blade.rotation.x = 0.28;
+      scene.add(blade);
+      blades.push(blade);
+    }
+
+    // 右侧显示屏
+    screenMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.26, 0.1),
+      new THREE.MeshBasicMaterial({ color: MODE_COLORS.cool, transparent: true, opacity: 0.95 })
+    );
+    screenMesh.position.set(0.78, 1.8, 0.27);
+    scene.add(screenMesh);
+
+    glowMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.36, 0.18),
+      new THREE.MeshBasicMaterial({ color: MODE_COLORS.cool, transparent: true, opacity: 0.18 })
+    );
+    glowMesh.position.set(0.78, 1.8, 0.265);
+    scene.add(glowMesh);
+
+    // 墙面
+    const wall = new THREE.Mesh(
+      new THREE.PlaneGeometry(9, 6),
+      new THREE.MeshStandardMaterial({ color: '#131b26', roughness: 1 })
+    );
+    wall.position.set(0, 2.0, -0.28);
+    wall.receiveShadow = true;
+    scene.add(wall);
+
+    // 地面（承接阴影）
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(9, 6),
+      new THREE.MeshStandardMaterial({ color: '#0d141d', roughness: 1 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0.2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // 风粒子（从底部出风口往下飘）
+    windCount = 180;
+    windPositions = new Float32Array(windCount * 3);
+    windData = [];
+    for (let i = 0; i < windCount; i += 1) {
+      windData.push({
+        x: rand(-0.9, 0.9),
+        y: Math.random() * 1.1,
+        z: rand(0.28, 0.9),
+        speed: rand(0.25, 0.55),
+        phase: rand(0, Math.PI * 2),
+      });
+      windPositions[i * 3 + 1] = -5;
+    }
+    const windGeo = new THREE.BufferGeometry();
+    windAttr = new THREE.BufferAttribute(windPositions, 3);
+    windGeo.setAttribute('position', windAttr);
+    windMat = new THREE.PointsMaterial({
+      color: '#9fd8ff',
+      size: 0.028,
+      transparent: true,
+      opacity: 0.7,
+      depthWrite: false,
+      sizeAttenuation: true,
+    });
+    windPoints = new THREE.Points(windGeo, windMat);
+    windPoints.position.set(0, 1.46, 0);
+    scene.add(windPoints);
+
+    resize3D();
+    ready = true;
+    applyModelState();
+  }
+
+  function resize3D() {
+    if (!renderer) return;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    renderer.setSize(rect.width || 300, rect.height || 250, false);
+    camera.aspect = (rect.width || 300) / (rect.height || 250);
+    camera.updateProjectionMatrix();
+  }
+
+  function applyModelState() {
+    if (!screenMesh) return;
+    const color = state.on ? (MODE_COLORS[state.mode] || '#6fd3ff') : '#2a3240';
+    screenMesh.material.color.set(color);
+    glowMesh.material.color.set(color);
+    glowMesh.material.opacity = state.on ? 0.22 : 0.05;
+  }
+
+  function updateWindParticles(dt, t) {
+    if (!windPoints || !windData.length) return;
+    const base = FAN_LEVELS[state.fan] || 0.5;
+    const modeFactor = state.mode === 'fan' ? 1.35 : state.mode === 'sleep' ? 0.6 : 1;
+    const strength = state.on ? base * modeFactor : 0;
+
+    if (windPoints) windPoints.visible = strength > 0.02;
+
+    for (let i = 0; i < windCount; i += 1) {
+      const d = windData[i];
+      const ix = i * 3;
+      if (strength <= 0.02) {
+        windPositions[ix + 1] = -5;
+        continue;
+      }
+      d.y += d.speed * dt * (0.9 + strength * 2.6);
+      if (d.y > 1.15) d.y -= 1.15;
+      const fall = d.y;
+      windPositions[ix] = d.x + Math.sin(t * 1.6 + d.phase) * 0.02 * fall;
+      windPositions[ix + 1] = -fall;
+      windPositions[ix + 2] = 0.28 + fall * 0.55 + Math.cos(t * 1.3 + d.phase) * 0.02;
+    }
+    windAttr.needsUpdate = true;
+    windMat.opacity = 0.1 + strength * 0.62;
+  }
+
+  const clock = { last: 0 };
+  function animate(ts) {
+    if (!running) return;
+    const t = ts || 0;
+    const dt = clock.last ? Math.min((t - clock.last) / 1000, 0.05) : 0.016;
+    clock.last = t;
+
+    const swingAmp = state.on ? (state.mode === 'sleep' ? 0.04 : 0.13) : 0;
+    blades.forEach((blade, i) => {
+      blade.rotation.x = -0.18 + i * 0.09 + Math.sin(t / 800 + i * 0.35) * swingAmp;
+    });
+
+    if (glowMesh) {
+      glowMesh.material.opacity = state.on ? 0.16 + Math.sin(t / 520) * 0.05 : 0.05;
+    }
+
+    updateWindParticles(dt, t / 1000);
+
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(animate);
+  }
+
+  function start() {
+    if (!ready) {
+      init3D().then(() => {
+        if (activeView === 'ac') {
+          running = true;
+          clock.last = 0;
+          raf = requestAnimationFrame(animate);
+        }
+      }).catch((err) => console.error('3D init failed', err));
+      return;
+    }
+    if (running) return;
+    running = true;
+    clock.last = 0;
+    raf = requestAnimationFrame(animate);
+  }
+
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  function render() {
+    body.classList.toggle('off', !state.on);
+    tempEl.textContent = state.on ? state.temp : '--';
+    modeLabel.textContent = MODE_NAMES[state.mode];
+    fanLabel.textContent = FAN_NAMES[state.fan];
+    applyModelState();
+    updateWind();
+  }
+
+  $('#acPower').addEventListener('click', () => {
+    state.on = !state.on;
+    if (state.on) powerOnSound(); else powerOffSound();
+    render();
+  });
+
+  $('#acUp').addEventListener('click', () => {
+    if (!state.on) { toast('先开机'); return; }
+    if (state.temp < 30) { state.temp += 1; tap(); render(); }
+    else tone(400, 0.1);
+  });
+  $('#acDown').addEventListener('click', () => {
+    if (!state.on) { toast('先开机'); return; }
+    if (state.temp > 16) { state.temp -= 1; tap(); render(); }
+    else tone(400, 0.1);
+  });
+
+  modesEl.addEventListener('click', (event) => {
+    const btn = event.target.closest('button');
+    if (!btn) return;
+    state.mode = btn.dataset.mode;
+    modesEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+    tap();
+    render();
+  });
+
+  fansEl.addEventListener('click', (event) => {
+    const btn = event.target.closest('button');
+    if (!btn) return;
+    state.fan = btn.dataset.fan;
+    fansEl.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+    tap();
+    render();
+  });
+
+  window.addEventListener('resize', () => { if (running) resize3D(); });
+
+  render();
+
+  return { start, stop };
+})();
+/* ---------- 壁纸生成 ---------- */
+(() => {
+  const canvas = $('#wallpaperPreview');
+  const ctx = canvas.getContext('2d');
+  const W = 1080;
+  const H = 1920;
+  canvas.width = W;
+  canvas.height = H;
+  const styleButtons = document.querySelectorAll('#wallpaperStyles button');
+  let style = 'mesh';
+
+  function hsl(h, s, l, a = 1) {
+    return `hsla(${h}, ${s}%, ${l}%, ${a})`;
+  }
+
+  function drawMesh() {
+    const hue = randInt(0, 359);
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, hsl(hue, 70, 22));
+    g.addColorStop(0.55, hsl((hue + 40) % 360, 65, 40));
+    g.addColorStop(1, hsl((hue + 90) % 360, 75, 58));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 5; i += 1) {
+      const rg = ctx.createRadialGradient(rand(0, W), rand(0, H), 0, rand(0, W), rand(0, H), rand(400, 900));
+      rg.addColorStop(0, hsl(randInt(0, 359), 80, 65, 0.35));
+      rg.addColorStop(1, hsl(0, 0, 0, 0));
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  function drawBlob() {
+    ctx.fillStyle = hsl(randInt(200, 260), 40, 8);
+    ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 7; i += 1) {
+      const x = rand(W * 0.1, W * 0.9);
+      const y = rand(H * 0.1, H * 0.9);
+      const r = rand(140, 420);
+      const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+      const hue = randInt(0, 359);
+      rg.addColorStop(0, hsl(hue, 85, 62, 0.5));
+      rg.addColorStop(1, hsl(hue, 85, 62, 0));
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawGrid() {
+    const hue = randInt(0, 359);
+    ctx.fillStyle = hsl(hue, 45, 10);
+    ctx.fillRect(0, 0, W, H);
+    const step = randInt(60, 110);
+    ctx.strokeStyle = hsl((hue + 30) % 360, 70, 60, 0.16);
+    ctx.lineWidth = 2;
+    for (let x = -H; x < W + H; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + H, H);
+      ctx.stroke();
+    }
+    for (let x = 0; x < W + H * 2; x += step * 2) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x - H, H);
+      ctx.stroke();
+    }
+    const rg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, H * 0.7);
+    rg.addColorStop(0, hsl((hue + 60) % 360, 80, 60, 0.35));
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawWave() {
+    const hue = randInt(0, 359);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, hsl(hue, 60, 16));
+    g.addColorStop(1, hsl((hue + 50) % 360, 70, 34));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 6; i += 1) {
+      ctx.beginPath();
+      const yBase = H * (0.25 + i * 0.1);
+      const amp = rand(50, 130);
+      ctx.moveTo(0, yBase);
+      for (let x = 0; x <= W; x += 24) {
+        const y = yBase + Math.sin((x / W) * Math.PI * rand(2, 4) + i) * amp;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(W, H);
+      ctx.lineTo(0, H);
+      ctx.closePath();
+      ctx.fillStyle = hsl((hue + i * 18) % 360, 75, 55, 0.12);
+      ctx.fill();
+    }
+  }
+
+  function draw() {
+    if (style === 'mesh') drawMesh();
+    else if (style === 'blob') drawBlob();
+    else if (style === 'grid') drawGrid();
+    else drawWave();
+  }
+
+  styleButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      style = btn.dataset.style;
+      styleButtons.forEach((b) => b.classList.toggle('active', b === btn));
+      draw();
+    });
+  });
+
+  $('#btnWallpaper').addEventListener('click', draw);
+  $('#btnDownload').addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = `wallpaper-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast('已开始下载');
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>

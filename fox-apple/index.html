@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>狐狸吃苹果</title>
+<style>
+  :root {
+    --ink: #4a2c18;
+    --panel: rgba(255, 248, 238, 0.78);
+    --edge: rgba(122, 74, 40, 0.18);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #cfe9f7;
+    font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #stage { position: fixed; inset: 0; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+
+  .hud {
+    position: fixed;
+    left: max(16px, env(safe-area-inset-left));
+    top: max(16px, env(safe-area-inset-top));
+    color: var(--ink);
+    pointer-events: none;
+    user-select: none;
+  }
+  .hud h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  .hud p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    opacity: 0.62;
+    letter-spacing: 0.02em;
+  }
+
+  .bar {
+    position: fixed;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(90, 52, 24, 0.12);
+  }
+  .bar button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.18s ease, opacity 0.18s ease;
+    white-space: nowrap;
+  }
+  .bar button:hover { background: rgba(122, 74, 40, 0.09); }
+  .bar button:active { background: rgba(122, 74, 40, 0.16); }
+  .bar .sep {
+    width: 1px;
+    height: 18px;
+    background: var(--edge);
+    margin: 0 2px;
+  }
+  .bar .rate { min-width: 54px; text-align: center; font-variant-numeric: tabular-nums; }
+
+  #fallback {
+    position: fixed;
+    inset: 0;
+    display: none;
+    place-content: center;
+    padding: 32px;
+    text-align: center;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.7;
+    background: #cfe9f7;
+  }
+  #fallback code {
+    font-family: ui-monospace, Menlo, monospace;
+    background: rgba(122, 74, 40, 0.1);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 420px) {
+    .hud h1 { font-size: 16px; }
+    .bar button { padding: 8px 11px; font-size: 12px; }
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="stage"></div>
+
+  <div class="hud">
+    <h1>狐狸吃苹果</h1>
+    <p>拖动旋转 · 双指或滚轮缩放</p>
+  </div>
+
+  <div class="bar">
+    <button id="btn-pause" type="button">暂停</button>
+    <div class="sep"></div>
+    <button id="btn-replay" type="button">重播</button>
+    <div class="sep"></div>
+    <button id="btn-rate" class="rate" type="button">1.0×</button>
+  </div>
+
+  <div id="fallback">
+    <div>
+      3D 资源没有加载成功。<br />
+      请在 <code>fox-apple</code> 目录下运行 <code>python3 -m http.server 8000</code>，<br />
+      再打开 <code>http://localhost:8000</code>。
+    </div>
+  </div>
+
+  <script type="module">
+    import('./src/main.js').catch((err) => {
+      console.error(err);
+      document.getElementById('fallback').style.display = 'grid';
+    });
+  </script>
+</body>
+</html>
