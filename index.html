@@ -1400,13 +1400,18 @@ const moon = (() => {
     try {
       tex = await new THREE.TextureLoader().loadAsync('./moon_tex.jpg');
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 8;
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = false;
+      tex.needsUpdate = true;
     } catch (e) {
       tex = new THREE.CanvasTexture(makeMoonTexture());
       tex.colorSpace = THREE.SRGBColorSpace;
     }
 
-    const geo = new THREE.SphereGeometry(1.35, 128, 128);
+    const geo = new THREE.SphereGeometry(1.35, 64, 48);
     const mat = new THREE.MeshStandardMaterial({
       map: tex,
       roughness: 0.95,
